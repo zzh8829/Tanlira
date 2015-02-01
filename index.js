@@ -5,6 +5,7 @@ var cookieParser = require('cookie-parser');
 var errorHandler = require('errorhandler');
 var methodOverride = require('method-override');
 var mongoose = require('mongoose');
+var request = require('request');
 var uuid = require('node-uuid');
 var app = express();
 var server = require('http').createServer(app);
@@ -149,6 +150,26 @@ app.post('/downvote', function(req, res) {
     }
   );
 });
+
+app.post('/searchloc', function(req, res) {
+  var options = {
+      host: url,
+      port: 80,
+      path: '/resource?id=foo&bar=baz',
+      method: 1
+  };
+
+  http.request(options, function(res) {
+      console.log('STATUS: ' + res.statusCode);
+        console.log('HEADERS: ' + JSON.stringify(res.headers));
+          res.setEncoding('utf8');
+            res.on('data', function (chunk) {
+                  console.log('BODY: ' + chunk);
+                    });
+  }).end();
+
+});
+
 
 server.listen(port);
 

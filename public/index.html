@@ -284,18 +284,17 @@
 
                 addmarker.setMap(map)
 
-                addInfoWindow(addmarker, '<div id="infowindow"><h3>Add a new utility!</h3><form><select><option>Washroom</option><option>Water Fountain</option></select><div id="save-utility-button" onclick="save_utility_fn()">Save!</div></form></div>');
+                addInfoWindow(addmarker, '<div id="infowindow"><h3>Add a new utility!</h3><form><select id="select-utility-type"><option value="washroom">Washroom</option><option value="fountain">Water Fountain</option></select><div id="save-utility-button" onclick="save_utility_fn()">Save!</div></form></div>');
 
                 console.log($("#save-utility-button"));
                 
                 window.save_utility_fn = function() {
-                  console.log('yolo');
-                  console.log(addmarker);
                   var lat = addmarker.getPosition().lat();
                   var lng = addmarker.getPosition().lng();
-                  console.log(lat, lng);
 
-                  $.post("http://tanlira.com/addobj", {"type": "washroom", "loc": [lng, lat]}, function(data){
+                  utility_type = $("#select-utility-type option:selected").val();
+
+                  $.post("http://tanlira.com/addobj", {"type": utility_type, "loc": [lng, lat]}, function(data){
                     console.log(data);
                   });
                 }
