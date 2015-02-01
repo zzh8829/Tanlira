@@ -184,9 +184,31 @@
                 fillColor: '#808080'
             });
 
+            
+            
+            
             google.maps.event.addListenerOnce(GeoMarker, 'position_changed', function() {
                 map.setCenter(this.getPosition());
                 map.fitBounds(this.getBounds());
+
+
+                $.post("http://tanlira.com/getobj", {
+                    "loc": [ map.getCenter().lng(), map.getCenter().lat()],
+                    "distance": 1
+                }, function(data) {
+                    console.log(data);
+                    for (var key in data) {
+                        var object = data[key];
+                        var marker = new google.maps.Marker({
+                            position: new google.maps.LatLng(object.loc.coordinates[1], object.loc.coordinates[0]),
+                            title: "washroom",
+                            icon: 'img/washroom.png'
+                        });
+                        marker.setMap(map);
+                    }
+                });
+
+
             });
 
             google.maps.event.addListener(GeoMarker, 'geolocation_error', function(e) {
@@ -196,8 +218,6 @@
             GeoMarker.setMap(map);
 
 
-
-
             var washromLocation = new google.maps.LatLng(43.659456, -79.39740);
             var washroom = new google.maps.Marker({
                 position: washromLocation,
@@ -205,34 +225,16 @@
                 icon: 'img/washroom.png'
             });
             washroom.setMap(map);
-        $.post("http://tanlira.com/getobj",{"loc": [map.getCenter().lng(),map.getCenter().lat()], "distance": 1}, function(data){
-               console.log('test');  
-                for (var object in data) {
-                    console.log(object);
-                         var marker = new google.maps.Marker({
-                            position: new google.maps.LatLng(object.loc.coordinates[1], object.loc.coordinates[0]),
-                            title: "washroom",
-                            icon: 'img/washroom.png'
-                        });
-                             object.setMap(map);
-                }
-        });
-            
-            
-            
+
 
             google.maps.event.addListener(washroom, 'click', function() {
                 infowindow.open(map, washroom);
             });
 
-            
-            
-            
-            
-            
+
             google.maps.event.addListener(map, "click", function(event) {
                 infowindow.open(null, null);
-});
+            });
 
         }
 
@@ -247,24 +249,24 @@
 
     <script>
         function addInfoWindow(marker, content) {
-         
-                
-                var addwindow = new google.maps.InfoWindow({
-                    content: content
-                });
 
-                google.maps.event.addListener(addmarker, 'click', function() {
-                    addwindow.open(map, addmarker);
-                });   
+
+            var addwindow = new google.maps.InfoWindow({
+                content: content
+            });
+
+            google.maps.event.addListener(addmarker, 'click', function() {
+                addwindow.open(map, addmarker);
+            });
         }
-        
+
         $(document).ready(function() {
             $('#add-utility-link').on('click', function() {
-if (typeof addmarker !== 'undefined') {
-                    addmarker.setMap(null) 
-                
+                if (typeof addmarker !== 'undefined') {
+                    addmarker.setMap(null)
+
                 }
-                
+
                 var addMarkerLocation = GeoMarker.getPosition();
                 map.setCenter(GeoMarker.getPosition());
                 addmarker = new google.maps.Marker({
@@ -275,11 +277,11 @@ if (typeof addmarker !== 'undefined') {
                 });
 
 
-                
+
 
 
                 addmarker.setMap(map)
-                
+
                 addInfoWindow(addmarker, '<div id="infowindow"><h3>Add a new utility!</h3><form><select><option>Washroom</option><option>Water Fountain</option></select><input type="submit" value="Add!"></input></form></div>');
 
                 google.maps.event.addListener(addmarker, 'dragend', function(event) {

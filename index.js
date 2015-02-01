@@ -33,6 +33,7 @@ var MapObjectSchema = new mongoose.Schema({
 var MapObject = mongoose.model('MapObject', MapObjectSchema);
 
 app.all('/getobjall', function(req,res) {
+  console.log('hi')
   MapObject.find().exec(function (err,objs) {
     if(err) return res.send(err);
     res.json(objs);
@@ -40,14 +41,16 @@ app.all('/getobjall', function(req,res) {
 });
 
 app.post('/getobj', function(req, res) {
+  console.log(req.body);
   MapObject.
     find({'loc': {
       $geoWithin: {$centerSphere: [
-        req.body.loc, req.body.distance/6371
+        [parseFloat(req.body.loc[0]),parseFloat(req.body.loc[1])], req.body.distance/6371
       ]}
     }}).
     exec(function (err, objs) {
       if(err) return res.send(err);
+      console.log(objs);
       res.json(objs);
     });
 });
