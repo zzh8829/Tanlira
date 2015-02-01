@@ -270,8 +270,7 @@
         $(document).ready(function() {
             $('#add-utility-link').on('click', function() {
                 if (typeof addmarker !== 'undefined') {
-                    addmarker.setMap(null)
-
+                    addmarker.setMap(null);
                 }
 
                 var addMarkerLocation = GeoMarker.getPosition();
@@ -282,10 +281,6 @@
                     title: "Your location",
                     icon: 'img/add.png'
                 });
-
-
-
-
 
                 addmarker.setMap(map)
 
