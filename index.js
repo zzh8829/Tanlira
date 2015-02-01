@@ -164,5 +164,24 @@ app.post('/searchloc', function(req, res) {
       });
 });
 
+app.get('/location', function(req, res) {
+  var headers = {
+    'X-Mashape-Key':'Gg7E1Gdy0zmshSAYOZPX4drho6OEp1XTKSUjsnWVCEMKBfZlA1',
+    'Accept':'application/json'
+  }
+
+  var ip = req.headers['x-forwarded-for'] || 
+       req.connection.remoteAddress || 
+       req.socket.remoteAddress ||
+       req.connection.socket.remoteAddress;
+
+  request.get({
+      url: 'https://montanaflynn-geocoder.p.mashape.com/ip?ip=' + ip,
+      headers: headers}, function(err, him, body) {
+        if(err) return res.send(err);
+        res.json(JSON.parse(body));
+      });
+});
+
 server.listen(port);
 

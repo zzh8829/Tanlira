@@ -130,16 +130,6 @@
     <footer>
         <p id="add-utility"><a id="add-utility-link" href="#">Add</a>
         </p>
-        <!---
-        <div id="latlong">
-            <p>Latitude:
-                <input size="20" type="text" id="latbox" name="lat">
-            </p>
-            <p>Longitude:
-                <input size="20" type="text" id="lngbox" name="lng">
-            </p>
-        </div>
--->
     </footer>
 
     <script src="js/vendor/jquery.js"></script>
@@ -156,32 +146,40 @@
                 awindow.close();
             }
         }
-    </script>
-
-    <script>
         var map, GeoMarker;
 
-        window.makeContentString = function() {
+        window.remove_utility_fn = function(event) {
+          var id = $(event.currentTarget).parent().data("utility-id");
+          console.log(id);
+          $.post("http://tanlira.com/deleteobj", {
+            id: id
+          }, function(data) {
+            console.log(data);
+          });
+        }
 
-            return '<div id="infowindow">' +
+        window.makeContentString = function(utility_obj) {
+
+            console.log(utility_obj.comment);
+
+            var comments_str = '<li>yo</li>'
+
+            return '<div id="infowindow" data-utility-id=' + utility_obj.id + '>' +
                 '<div id="siteNotice">' +
                 '</div>' +
                 '<div id="bodyContent">' +
+                utility_obj.id +
                 '<p>43% Positive Feedback' +
-                "<p>Comments:</p>" +
-                "<ul><li class='negative'>5x Dirty</li><li class='positive'>4x Large</li><li class='negative' color='red'>3x Smelly</li></ul>" +
+                '<p>Comments:</p>' +
+                '<ul>' + comments_str + '</ul>' +
                 '</div>' +
-                '<a href="#">Does this washroom exist?</a>' +
+                '<div class="remove" onclick=remove_utility_fn(event)>Delete</div>' +
                 '</div>';
 
         };
 
         function initialize() {
             google.maps.event.addDomListener(window, 'load', initialize);
-            var infowindow = new google.maps.InfoWindow({
-                content: makeContentString()
-            });
-
 
             var mapOptions = {
                 zoom: 15,
@@ -191,15 +189,10 @@
             map = new google.maps.Map(document.getElementById('map-canvas'),
                 mapOptions);
 
-
-
             GeoMarker = new GeolocationMarker();
             GeoMarker.setCircleOptions({
                 fillColor: '#808080'
             });
-
-
-
 
             google.maps.event.addListenerOnce(GeoMarker, 'position_changed', function() {
                 map.setCenter(this.getPosition());
@@ -220,7 +213,7 @@
                             icon: icon
                         });
                         marker.setMap(map);
-                        addInfoWindow(marker, makeContentString());
+                        addInfoWindow(marker, makeContentString(data[key]));
                     }
                 });
 
@@ -235,7 +228,6 @@
 
             google.maps.event.addListener(map, "click", function(event) {
                 minimizeAllInfoWindows();
-                infowindow.open(null, null);
             });
 
         }
@@ -269,8 +261,8 @@
                     addmarker.setMap(null);
                 }
 
-                var addMarkerLocation = GeoMarker.getPosition();
-                map.setCenter(GeoMarker.getPosition());
+                var addMarkerLocation = map.getCenter();
+                // map.setCenter(GeoMarker.getPosition());
                 addmarker = new google.maps.Marker({
                     draggable: true,
                     position: addMarkerLocation,
