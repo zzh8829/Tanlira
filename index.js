@@ -233,9 +233,33 @@ app.post('/twilio', function(req, res) {
             if (err) {
               console.log(err);
             }
-            console.log(data);
-            gurl = 'https://maps.googleapis.com/maps/api/staticmap?center=' + s.latitude + "," + s.longitude + '&zoom=15&size=512x512';
-            gurl = gurl + '&markers=' + data[0].loc.coordinates[1] + ',' +  data[0].loc.coordinates[0];
+            gurl = 'https://maps.googleapis.com/maps/api/staticmap?center=' + s.latitude + "," + s.longitude + '&zoom=15';
+            gurl = gurl + '&size=512x512';
+            for (var i = 0; i < data.length; i++) {
+
+              
+
+              var obj = data[i];
+              var label;
+
+              label = {
+                fountain: 'F',
+                washroom: 'W',
+                hotdog: 'H',
+                vending: 'V',
+                foodtruck: 'T',
+              };
+              color = {
+                fountain: 'blue',
+                washroom: 'brown',
+                hotdog: 'orange',
+                vending: 'red',
+                foodtruck: 'yellow',
+              };
+
+              console.log(obj.type);
+              gurl = gurl + '&markers=label:' + label[obj.type] + '%7C' + 'color:' + color[obj.type] + '%7C' + obj.loc.coordinates[1].toFixed(6) + ',' +  obj.loc.coordinates[0].toFixed(6);
+            }
             console.log(gurl);
             ret.mediaUrl = gurl;
             twilioClient.messages.create(ret);
