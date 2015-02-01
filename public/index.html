@@ -8,11 +8,14 @@
     <link rel="stylesheet" href="css/foundation.css" />
     <link rel="icon" href="favicon.ico" type="image/x-icon" />
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="manifest" href="android-manifest.json" />
     <meta name="apple-touch-fullscreen" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <script src="js/vendor/modernizr.js"></script>
-    <script>window.infowindows = [];</script>
+    <script>
+        window.infowindows = [];
+    </script>
     <style type="text/css">
         html,
         #map-canvas {
@@ -62,6 +65,9 @@
         #add-utility a {
             font-weight: bold;
             color: green;
+        }
+        .score {
+          width:230px;
         }
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?sensor=true"></script>
@@ -145,69 +151,133 @@
         }
         var map, GeoMarker;
 
+        var getscore = function(data) {
+          color = "green";
+          prec = 50
+          if(data.upvote + data.downvote != 0)
+            prec = (100* data.upvote / (data.upvote + data.downvote)).toFixed(0);
+          
+          if(prec < 50) {
+            color = "red";
+          }
+          return '<span>' +
+                 '<div style="color:' + color + '">' + (data.upvote - data.downvote) + "</div> [" + prec  + "% upvoted]" + 
+                 '<div class="upvote"><a onclick=upvote_utility_fn(event) href="#">Upvote</a></div>' +
+                 '<div class="downvote"><a onclick=downvote_utility_fn(event) href="#">Downvote</a></div>' +
+                 '</span>';
+        }
+
         window.upvote_utility_fn = function(event) {
-          var id = $(event.currentTarget).parent().data("utility-id");
-          $.post("http://tanlira.com/upvote", {
-            id: id
-          });
+            var iw = $(event.currentTarget).parents.find("#infowindow");
+            var id = iw.data("utility-id");
+            $.post("http://tanlira.com/upvote", {
+                id: id
+            }, function(data) {
+                console.log(data);
+                console.log($(".score", iw).html(getscore(data)));
+
+            });
         };
 
-        window.downvote_utility_fn= function(event) {
-          var id = $(event.currentTarget).parent().data("utility-id");
-          $.post("http://tanlira.com/downvote", {
-            id: id
-          });
+        window.downvote_utility_fn = function(event) {
+            var iw = $(event.currentTarget).parents().find("#infowindow");
+            console.log(iw);
+            var id = iw.data("utility-id");
+
+            $.post("http://tanlira.com/downvote", {
+                id: id
+            }, function(data) {
+                console.log(data);
+                console.log($(".score", iw).html(getscore(data)));
+
+            });
         };
 
         window.remove_utility_fn = function(event) {
-          var id = $(event.currentTarget).parent().data("utility-id");
-          console.log(id);
-          $.post("http://tanlira.com/deleteobj", {
-            id: id
-          }, function(data) {
-            console.log(data);
-          });
+            var iw = $(event.currentTarget).parents().find("#infowindow");
+            var id = iw.data("utility-id");
+            $.post("http://tanlira.com/deleteobj", {
+                id: id
+            }, function(data) {
+                console.log(data);
+                var centre = map.getCenter();
+                var zoom = map.getZoom();
+                window.loadMap();
+                map.setCenter(centre);
+                window.loadMarkers();
+                map.setZoom(zoom);
+            });
         };
 
         window.comment_utility_fn = function(event) {
-          var id = $(event.currentTarget).parent().data("utility-id");
-          console.log(id);
+            var iw = $(event.currentTarget).parent().parent().parent();
+            var id = iw.data("utility-id");
+            var comment = window.prompt("Comment:", "I'm Lov'in it"); 
+            if((!comment) || comment .length == 0) 
+              return
+          $.post("http://tanlira.com/addcomment",{
+            id:id,
+            comment: comment
+          }, function(data) {
+            console.log(data);
+            if(data.comment) {
+             $("ul",iw).html("<li>" + data.comment.join("</li><li>") + '</li>'); 
+            }else {
+              $("ul",iw).html("");
+            }
+          });
         }
 
         window.makeContentString = function(utility_obj) {
 
             if (utility_obj.upvote === 0 && utility_obj.downvote === 0) {
-              var percent_like = '50%';
+                var percent_like = '50%';
             } else {
-              var percent_like = (100 * utility_obj.upvote / (utility_obj.upvote + utility_obj.downvote)).toFixed(0) + '%';
+                var percent_like = (100 * utility_obj.upvote / (utility_obj.upvote + utility_obj.downvote)).toFixed(0) + '%';
             }
             var score = utility_obj.upvote - utility_obj.downvote;
 
             if (utility_obj.comment.length > 0) {
-              var comments_str = "<li>" + utility_obj.comment.join("</li><li>") + "</li>"
+                var comments_str = "<li>" + utility_obj.comment.join("</li><li>") + "</li>"
             } else {
-              var comments_str = "";
+                var comments_str = "";
             }
 
             return '<div id="infowindow" data-utility-id=' + utility_obj.id + '>' +
                 '<div id="siteNotice">' +
                 '</div>' +
                 '<div id="bodyContent">' +
-                utility_obj.id +
-                '<p> score: ' + score + ' [' + percent_like + 'upvoted]' +
-                '<p>Comments:</p>' +
-                '<ul>' + comments_str + '</ul>' +
+                '<div class="score">' + getscore(utility_obj) +
                 '</div>' +
-                '<div class="remove" onclick=remove_utility_fn(event)>Delete</div>' +
-                '<div class="upvote" onclick=upvote_utility_fn(event)>Upvote</div>' +
-                '<div class="downvote" onclick=downvote_utility_fn(event)>Downvote</div>' +
-                '<div class="comment" onclick=comment_utility_fn(event)>Comment</div>' +
-                '</div>';
+                '<div>Comments:</div>' +
+                '<ul>' + comments_str + '</ul>' +
+                '<div class="remove"><a onclick=remove_utility_fn(event) href="#">Delete</a></div>' +
+                '<div class="comment"><a onclick=comment_utility_fn(event) href="#">Comment</a></div>' +
+                '</div></div>';
 
         };
-
-        function initialize() {
-            google.maps.event.addDomListener(window, 'load', initialize);
+        window.loadMarkers = function loadMarkers() {
+                         $.post("http://tanlira.com/getobj", {
+                    "loc": [map.getCenter().lng(), map.getCenter().lat()],
+                    "distance": 15000
+                }, function(data) {
+                    console.log(data);
+                    for (var key in data) {
+                        var object = data[key];
+                        var icon = "/img/icons/" + object.type + ".png";
+                        var marker = new google.maps.Marker({
+                            position: new google.maps.LatLng(object.loc.coordinates[1], object.loc.coordinates[0]),
+                            title: object.type,
+                            icon: icon
+                        });
+                        marker.setMap(map);
+                        addInfoWindow(marker, makeContentString(data[key]));
+                    }
+                });   
+            
+        }
+        window.loadMap = function initialize() {
+            google.maps.event.addDomListener(window, 'load', loadMap);
 
             var mapOptions = {
                 zoom: 15,
@@ -225,26 +295,7 @@
             google.maps.event.addListenerOnce(GeoMarker, 'position_changed', function() {
                 map.setCenter(this.getPosition());
                 map.fitBounds(this.getBounds());
-
-
-                $.post("http://tanlira.com/getobj", {
-                    "loc": [map.getCenter().lng(), map.getCenter().lat()],
-                    "distance": 15000
-                }, function(data) {
-                    console.log(data);
-                    for (var key in data) {
-                        var object = data[key];
-                        var icon = "/img/icons/" + object.type + ".png";
-                        var marker = new google.maps.Marker({
-                            position: new google.maps.LatLng(object.loc.coordinates[1], object.loc.coordinates[0]),
-                            title: "washroom",
-                            icon: icon
-                        });
-                        marker.setMap(map);
-                        addInfoWindow(marker, makeContentString(data[key]));
-                    }
-                });
-
+                loadMarkers();
 
             });
 
@@ -260,7 +311,7 @@
 
         }
 
-        google.maps.event.addDomListener(window, 'load', initialize);
+        google.maps.event.addDomListener(window, 'load', loadMap);
 
 
         if (!navigator.geolocation) {
@@ -301,48 +352,51 @@
                 addmarker.setMap(map)
 
                 addInfoWindow(addmarker, [
-                  '<div id="infowindow"><h4>Add a new utility!</h4><form>',
-                  '<select id="select-utility-type"><option value="washroom">Washroom</option>',
-                  '<option value="fountain">Water Fountain</option>',
-                                      '<option value="hotdog">Hotdog Stand</option>',
-                                      '<option value="vending">Vending Machine</option>',
-                                      '<option value="foodtruck">Food Truck</option>',
-                    
-                  '</select><div id="save-utility-button" onclick="save_utility_fn()">Save!</div></form></div>'
+                    '<div id="infowindow"><h4>Add a new utility!</h4><form>',
+                    '<select id="select-utility-type"><option value="washroom">Washroom</option>',
+                    '<option value="fountain">Water Fountain</option>',
+                    '<option value="hotdog">Hotdog Stand</option>',
+                    '<option value="vending">Vending Machine</option>',
+                    '<option value="foodtruck">Food Truck</option>',
+
+                    '</select><div id="save-utility-button" onclick="save_utility_fn()"><a href="#">Save!<a/></div></form></div>'
                 ].join(''));
 
                 console.log($("#save-utility-button"));
-                
+
                 window.save_utility_fn = function() {
-                  var lat = addmarker.getPosition().lat();
-                  var lng = addmarker.getPosition().lng();
+                    var lat = addmarker.getPosition().lat();
+                    var lng = addmarker.getPosition().lng();
 
-                  utility_type = $("#select-utility-type option:selected").val();
+                    utility_type = $("#select-utility-type option:selected").val();
 
-                  $.post("http://tanlira.com/addobj", {"type": utility_type, "loc": [lng, lat]}, function(data){
-                    console.log(data);
-                      if (data.response = "ok") {
-                        var newmarker = new google.maps.Marker({
-                            position: new google.maps.LatLng(lat, lng),
-                            title: utility_type,
-                            icon: "/img/icons/" + utility_type + ".png"
-                        });
-                        newmarker.setMap(map);
-                    addmarker.setMap(null);
-                          alert ("OK");
-                      } else {
-                        alert ("ERROR");   
-                      }
-                  });
+                    $.post("http://tanlira.com/addobj", {
+                        "type": utility_type,
+                        "loc": [lng, lat]
+                    }, function(data) {
+                        console.log(data);
+                        if (data.response = "ok") {
+                            var newmarker = new google.maps.Marker({
+                                position: new google.maps.LatLng(lat, lng),
+                                title: utility_type,
+                                icon: "/img/icons/" + utility_type + ".png"
+                            });
+                            newmarker.setMap(map);
+                            addmarker.setMap(null);
+                            alert("OK");
+                        } else {
+                            alert("ERROR");
+                        }
+                    });
                 }
 
                 google.maps.event.addListener(addmarker, 'dragend', function(event) {
                     // document.getElementById("latbox").value = this.getPosition().lat();
                     // document.getElementById("lngbox").value = this.getPosition().lng();
                 });
-                
+
                 google.maps.event.addListener(map, 'drag', function(event) {
-                   // alert ("Map dragged");
+                    // alert ("Map dragged");
                     console.log("Map dragged");
                     // document.getElementById("latbox").value = this.getPosition().lat();
                     // document.getElementById("lngbox").value = this.getPosition().lng();

@@ -104,9 +104,10 @@ app.post('/addcomment', function(req, res) {
     {upsert:true},
     function(err, obj) {
       if(err) return res.send(err);
-      res.json({
-        response: "ok"
-      })
+     MapObject.find({"id":req.body.id},function (err,obj){
+        if(err) return res.send(err);
+        res.json(obj[0]);
+      }) 
     }
   );
 });
@@ -126,28 +127,32 @@ app.post('/addimage', function(req, res) {
 });
 
 app.post('/upvote', function(req, res) {
+  console.log('upvoting');
   MapObject.update(
     {"id": req.body.id},
     {$inc: {'upvote': 1}},
     {upsert: true},
     function(err, obj) {
       if(err) return res.send(err);
-      res.json({
-        response: "ok"
+      MapObject.find({"id":req.body.id},function (err,obj){
+        if(err) return res.send(err);
+        res.json(obj[0]);
       })
     }
   );
 });
 
 app.post('/downvote', function(req, res) {
+  console.log('downvoting');
   MapObject.update(
     {"id": req.body.id},
     {$inc: {'downvote': 1}},
     {upsert: true},
     function(err, obj) {
       if(err) return res.send(err);
-      res.json({
-        response: "ok"
+     MapObject.find({"id":req.body.id},function (err,obj){
+        if(err) return res.send(err);
+        res.json(obj[0]);
       })
     }
   );
@@ -226,30 +231,28 @@ app.post('/twilio', function(req, res) {
       if(err) ret.body = err;
       else {
         s = JSON.parse(body);
-        if ('error' in s)
+        if ('error' in s){
           ret.body = "Sorry, we could not locate this address.";
+          console.log(ret);
+          twilioClient.messages.create(ret);
+        }
         else {
           find_markers(s.latitude, s.longitude, 1/6347, function(err, data) {
             if (err) {
               console.log(err);
             }
-            gurl = 'https://maps.googleapis.com/maps/api/staticmap?center=' + s.latitude + "," + s.longitude + '&zoom=15';
-            gurl = gurl + '&size=512x512';
-            for (var i = 0; i < data.length; i++) {
+            gurl = 'https://maps.googleapis.com/maps/api/staticmap?center=' + s.latitude + "," + s.longitude;
+            gurl = gurl + '&zoom=15&size=512x512';
 
-              
-
-              var obj = data[i];
-              var label;
-
-              label = {
+              var label = {
                 fountain: 'F',
                 washroom: 'W',
                 hotdog: 'H',
                 vending: 'V',
                 foodtruck: 'T',
               };
-              color = {
+
+              var color = {
                 fountain: 'blue',
                 washroom: 'brown',
                 hotdog: 'orange',
@@ -257,7 +260,8 @@ app.post('/twilio', function(req, res) {
                 foodtruck: 'yellow',
               };
 
-              console.log(obj.type);
+            for (var i = 0; i < data.length; i++) {
+              var obj = data[i];
               gurl = gurl + '&markers=label:' + label[obj.type] + '%7C' + 'color:' + color[obj.type] + '%7C' + obj.loc.coordinates[1].toFixed(6) + ',' +  obj.loc.coordinates[0].toFixed(6);
             }
             console.log(gurl);
@@ -280,8 +284,9 @@ app.post('/twilio', function(req, res) {
       console.log(ret);
       twilioClient.messages.create(ret);
     });
-  } else if(textlo.startsWith("find")) {
-
+  } else {// if(textlo.startsWith("find")) {
+    ret.body = 'Please text +16476910706 with map/locate + "address" to access our machine learning database';
+    twilioClient.messages.create(ret);
   }
 
   res.send("ok");
