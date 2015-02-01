@@ -48,19 +48,22 @@ app.all('/getobjall', function(req,res) {
   });
 });
 
-app.post('/getobj', function(req, res) {
-  console.log(req.body);
+var find_markers = function(lat, lng, dist, cb) {
   MapObject.
     find({'loc': {
       $geoWithin: {$centerSphere: [
-        [parseFloat(req.body.loc[0]),parseFloat(req.body.loc[1])], req.body.distance/6371
+        [parseFloat(lng), parseFloat(lat)], dist
       ]}
-    }}).
-    exec(function (err, objs) {
-      if(err) return res.send(err);
-      console.log(objs);
-      res.json(objs);
-    });
+    }}).exec(cb);
+}
+
+app.post('/getobj', function(req, res) {
+  console.log(req.body);
+  find_markers(parseFloat(req.body.loc[1]), parseFloat(req.body.loc[0]), req.body.distance/6371, function (err, objs) {
+    if(err) return res.send(err);
+    console.log(objs);
+    res.json(objs);
+  });
 });
 
 app.post('/addobj', function(req, res, next) {
@@ -160,7 +163,7 @@ var getloc = function(address, callback) {
       url: 'https://montanaflynn-geocoder.p.mashape.com/address?address=' + address.replace(/ /g, '+'),
       headers: headers}, function(err, him, body) {
         callback(err,him,body);
-      }); 
+      });
 }
 
 app.post('/searchloc', function(req, res) {
@@ -226,12 +229,19 @@ app.post('/twilio', function(req, res) {
         if ('error' in s)
           ret.body = "Sorry, we could not locate this address.";
         else {
-         gurl = 'https://maps.googleapis.com/maps/api/staticmap?center=' + s.latitude + "," + s.longitude + '&zoom=15&size=512x512';
-         ret.mediaUrl = gurl;
+          find_markers(s.latitude, s.longitude, 1/6347, function(err, data) {
+            if (err) {
+              console.log(err);
+            }
+            console.log(data);
+            gurl = 'https://maps.googleapis.com/maps/api/staticmap?center=' + s.latitude + "," + s.longitude + '&zoom=15&size=512x512';
+            gurl = gurl + '&markers=' + data[0].loc.coordinates[1] + ',' +  data[0].loc.coordinates[0];
+            console.log(gurl);
+            ret.mediaUrl = gurl;
+            twilioClient.messages.create(ret);
+          });
         }
       }
-      console.log(ret);
-      twilioClient.messages.create(ret);
     });
   } else if(textlo.startsWith("locate")) {
     getloc(text.substring(6), function(err,him,body) {
