@@ -150,6 +150,19 @@ app.post('/downvote', function(req, res) {
   );
 });
 
+var getloc = function(address, callback) {
+   var headers = {
+    'X-Mashape-Key':'Gg7E1Gdy0zmshSAYOZPX4drho6OEp1XTKSUjsnWVCEMKBfZlA1',
+    'Accept':'application/json'
+  }
+
+  request.get({
+      url: 'https://montanaflynn-geocoder.p.mashape.com/address?address=' + address.replace(/ /g, '+'),
+      headers: headers}, function(err, him, body) {
+        callback(err,him,body);
+      }); 
+}
+
 app.post('/searchloc', function(req, res) {
   var headers = {
     'X-Mashape-Key':'Gg7E1Gdy0zmshSAYOZPX4drho6OEp1XTKSUjsnWVCEMKBfZlA1',
@@ -161,7 +174,7 @@ app.post('/searchloc', function(req, res) {
       headers: headers}, function(err, him, body) {
         if(err) return res.send(err);
         res.json(JSON.parse(body));
-      });
+      }); 
 });
 
 app.get('/location', function(req, res) {
@@ -181,6 +194,52 @@ app.get('/location', function(req, res) {
         if(err) return res.send(err);
         res.json(JSON.parse(body));
       });
+});
+
+if (typeof String.prototype.startsWith != 'function') {
+  String.prototype.startsWith = function (str){
+    return this.slice(0, str.length) == str;
+  };
+}
+
+
+var twilioSid = 'AC06b0d099349ffab12bfd1e77b653f70a';
+var twilioToken = '011a3b8b14061ce2abaeacb0e2a84a86';
+var twilioClient = require('twilio')(twilioSid,twilioToken);
+
+app.post('/twilio', function(req, res) {
+  console.log(req.body);
+  
+  text = req.body.Body;
+  textlo = text.toLowerCase()
+  
+  ret = {
+    to: req.body.From,
+    from: req.body.To
+  };
+  
+  if(textlo.startsWith("map")) {
+    getloc(text.substring(3), function(err, him, body) {
+      if(err) ret.body = err;
+      else {
+        s = JSON.parse(body);
+        if ('error' in s)
+          ret.body = "Sorry, could not locate this address.";
+        else
+          ret.mediaUrl= 'https://maps.googleapis.com/maps/api/staticmap?center=' + s.latitude + "," + s.longitude + '&zoom=15&size=100x100';
+      }
+    
+      console.log(ret);
+
+      twilioClient.messages.create(ret);
+    });
+  } else if(textlo.startsWith("location")) {
+  
+  } else if(textlo.startsWith("find")) {
+
+  }
+
+  res.send("ok");
 });
 
 server.listen(port);

@@ -137,16 +137,27 @@
 
     <script>
         $(document).foundation();
-    </script>
 
-    <script>
         function minimizeAllInfoWindows() {
-            var awindow;
-            for (awindow of window.infowindows) {
+            for (var awindow of window.infowindows) {
                 awindow.close();
             }
         }
         var map, GeoMarker;
+
+        window.upvote_utility_fn = function(event) {
+          var id = $(event.currentTarget).parent().data("utility-id");
+          $.post("http://tanlira.com/upvote", {
+            id: id
+          });
+        };
+
+        window.downvote_utility_fn= function(event) {
+          var id = $(event.currentTarget).parent().data("utility-id");
+          $.post("http://tanlira.com/downvote", {
+            id: id
+          });
+        };
 
         window.remove_utility_fn = function(event) {
           var id = $(event.currentTarget).parent().data("utility-id");
@@ -156,24 +167,41 @@
           }, function(data) {
             console.log(data);
           });
+        };
+
+        window.comment_utility_fn = function(event) {
+          var id = $(event.currentTarget).parent().data("utility-id");
+          console.log(id);
         }
 
         window.makeContentString = function(utility_obj) {
 
-            console.log(utility_obj.comment);
+            if (utility_obj.upvote === 0 && utility_obj.downvote === 0) {
+              var percent_like = '50%';
+            } else {
+              var percent_like = (100 * utility_obj.upvote / (utility_obj.upvote + utility_obj.downvote)).toFixed(0) + '%';
+            }
+            var score = utility_obj.upvote - utility_obj.downvote;
 
-            var comments_str = '<li>yo</li>'
+            if (utility_obj.comment.length > 0) {
+              var comments_str = "<li>" + utility_obj.comment.join("</li><li>") + "</li>"
+            } else {
+              var comments_str = "";
+            }
 
             return '<div id="infowindow" data-utility-id=' + utility_obj.id + '>' +
                 '<div id="siteNotice">' +
                 '</div>' +
                 '<div id="bodyContent">' +
                 utility_obj.id +
-                '<p>43% Positive Feedback' +
+                '<p> score: ' + score + ' [' + percent_like + 'upvoted]' +
                 '<p>Comments:</p>' +
                 '<ul>' + comments_str + '</ul>' +
                 '</div>' +
                 '<div class="remove" onclick=remove_utility_fn(event)>Delete</div>' +
+                '<div class="upvote" onclick=upvote_utility_fn(event)>Upvote</div>' +
+                '<div class="downvote" onclick=downvote_utility_fn(event)>Downvote</div>' +
+                '<div class="comment" onclick=comment_utility_fn(event)>Comment</div>' +
                 '</div>';
 
         };
