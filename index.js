@@ -63,13 +63,14 @@ app.post('/getobj', function(req, res) {
 });
 
 app.post('/addobj', function(req, res, next) {
+  console.log("addobj")
   console.log(req.body);
   new MapObject({
     id: uuid.v4(),
     type: req.body.type,
     loc: {
       type: "Point",
-      coordinates:  req.body.loc
+      coordinates:  [parseFloat(req.body.loc[0]),parseFloat(req.body.loc[1])]
     },
     date: Date.now()
   }).save(function (err, obj, count) {
@@ -84,7 +85,12 @@ app.post('/updateobj', function(req, res) {
 });
 
 app.post('/deleteobj', function(req, res) {
-  MapObject.remove({"id": req.body.id});
+  MapObject.remove({"id": req.body.id},function (err, result) {
+    if(err) return res.send(err);
+    res.json({
+      response: "ok"
+    });
+  });
 });
 
 app.post('/addcomment', function(req, res) {

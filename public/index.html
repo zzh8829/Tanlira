@@ -50,16 +50,19 @@
             position: absolute;
             left: 0;
             bottom: 0;
-            height: 40px;
+            height: 80px;
             width: 100%;
             background: #333333;
         }
-        #add-utility {
+        #save-utility {
+            border-top: 1px solid white;
+        }
+        #add-utility, #save-utility {
             margin: 0;
             padding: 5px;
             text-align: center;
         }
-        #add-utility a {
+        #add-utility a, #save-utility a {
             font-weight: bold;
             color: green;
         }
@@ -130,6 +133,7 @@
     <footer>
         <p id="add-utility"><a id="add-utility-link" href="#">Add</a>
         </p>
+        <p id="save-utility"><a id="save-utility-link" href="#">Save</a></p>
         <!---
         <div id="latlong">
             <p>Latitude:
@@ -287,11 +291,21 @@
                 addInfoWindow(addmarker, '<div id="infowindow"><h3>Add a new utility!</h3><form><select><option>Washroom</option><option>Water Fountain</option></select><input type="submit" value="Add!"></input></form></div>');
 
                 google.maps.event.addListener(addmarker, 'dragend', function(event) {
-                    document.getElementById("latbox").value = this.getPosition().lat();
-                    document.getElementById("lngbox").value = this.getPosition().lng();
+                    // document.getElementById("latbox").value = this.getPosition().lat();
+                    // document.getElementById("lngbox").value = this.getPosition().lng();
                 });
 
 
+            });
+            $('#save-utility-link').on('click', function() {
+              console.log(addmarker);
+              var lat = addmarker.getPosition().lat();
+              var lng = addmarker.getPosition().lng();
+              console.log(lat, lng);
+
+              $.post("http://tanlira.com/addobj", {"type": "washroom", "loc": [lng, lat]}, function(data){
+                console.log(data);
+              });
             });
         });
     </script>
