@@ -50,19 +50,16 @@
             position: absolute;
             left: 0;
             bottom: 0;
-            height: 80px;
+            height: 40px;
             width: 100%;
             background: #333333;
         }
-        #save-utility {
-            border-top: 1px solid white;
-        }
-        #add-utility, #save-utility {
+        #add-utility {
             margin: 0;
             padding: 5px;
             text-align: center;
         }
-        #add-utility a, #save-utility a {
+        #add-utility a {
             font-weight: bold;
             color: green;
         }
@@ -133,7 +130,6 @@
     <footer>
         <p id="add-utility"><a id="add-utility-link" href="#">Add</a>
         </p>
-        <p id="save-utility"><a id="save-utility-link" href="#">Save</a></p>
         <!---
         <div id="latlong">
             <p>Latitude:
@@ -288,7 +284,21 @@
 
                 addmarker.setMap(map)
 
-                addInfoWindow(addmarker, '<div id="infowindow"><h3>Add a new utility!</h3><form><select><option>Washroom</option><option>Water Fountain</option></select><input type="submit" value="Add!"></input></form></div>');
+                addInfoWindow(addmarker, '<div id="infowindow"><h3>Add a new utility!</h3><form><select><option>Washroom</option><option>Water Fountain</option></select><div id="save-utility-button" onclick="save_utility_fn()">Save!</div></form></div>');
+
+                console.log($("#save-utility-button"));
+                
+                window.save_utility_fn = function() {
+                  console.log('yolo');
+                  console.log(addmarker);
+                  var lat = addmarker.getPosition().lat();
+                  var lng = addmarker.getPosition().lng();
+                  console.log(lat, lng);
+
+                  $.post("http://tanlira.com/addobj", {"type": "washroom", "loc": [lng, lat]}, function(data){
+                    console.log(data);
+                  });
+                }
 
                 google.maps.event.addListener(addmarker, 'dragend', function(event) {
                     // document.getElementById("latbox").value = this.getPosition().lat();
@@ -296,16 +306,6 @@
                 });
 
 
-            });
-            $('#save-utility-link').on('click', function() {
-              console.log(addmarker);
-              var lat = addmarker.getPosition().lat();
-              var lng = addmarker.getPosition().lng();
-              console.log(lat, lng);
-
-              $.post("http://tanlira.com/addobj", {"type": "washroom", "loc": [lng, lat]}, function(data){
-                console.log(data);
-              });
             });
         });
     </script>
