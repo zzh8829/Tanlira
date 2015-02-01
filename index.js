@@ -108,7 +108,6 @@ app.post('/addcomment', function(req, res) {
   );
 });
 
-
 app.post('/addimage', function(req, res) {
   MapObject.update(
     {"id": req.body.id},
@@ -152,24 +151,18 @@ app.post('/downvote', function(req, res) {
 });
 
 app.post('/searchloc', function(req, res) {
-  var options = {
-      host: url,
-      port: 80,
-      path: '/resource?id=foo&bar=baz',
-      method: 1
-  };
+  var headers = {
+    'X-Mashape-Key':'Gg7E1Gdy0zmshSAYOZPX4drho6OEp1XTKSUjsnWVCEMKBfZlA1',
+    'Accept':'application/json'
+  }
 
-  http.request(options, function(res) {
-      console.log('STATUS: ' + res.statusCode);
-        console.log('HEADERS: ' + JSON.stringify(res.headers));
-          res.setEncoding('utf8');
-            res.on('data', function (chunk) {
-                  console.log('BODY: ' + chunk);
-                    });
-  }).end();
-
+  request.get({
+      url: 'https://montanaflynn-geocoder.p.mashape.com/address?address=' + req.body.address.replace(/ /g, '+'),
+      headers: headers}, function(err, him, body) {
+        if(err) return res.send(err);
+        res.json(JSON.parse(body));
+      });
 });
-
 
 server.listen(port);
 
