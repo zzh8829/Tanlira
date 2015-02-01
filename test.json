@@ -1,0 +1,58 @@
+{
+  "locations": [
+    {
+      "1": {
+        "id": 1,
+        "name": null,
+        "type": "washroom",
+	     "symbol": "http://www.tanlira.com/symbols/washroom.png",
+        "latitude": null,
+        "longitude": null,
+		"upvotes": 5,
+		"downvotes": 2,
+        "comments": [
+          {
+            "1": {
+              "author": 7,
+              "text": "It was dirty!"
+            }
+          },
+          {
+            "2": {
+              "author": 9,
+              "text": "There wasn't any toilet paper"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "2": {
+        "id": 2,
+        "name": null,
+        "type": "fountain",
+        "latitude": null,
+        "longitude": null,
+	    "upvotes": 1,
+		"downvotes": 7,
+		"symbol": "http://www.tanlira.com/symbols/fountain.png",
+        "comments": [
+          {
+            "1": {
+              "id": 3,
+              "author": 7,
+              "text": "It was dirty!"
+            }
+          },
+          {
+            "2": {
+              "id": 4,
+              "author": 9,
+              "text": "The water tasted bad"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

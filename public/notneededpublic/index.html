@@ -1,0 +1,186 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TanLira | The Crowsourced Utility Map</title>
+    <link rel="stylesheet" href="css/foundation.css" />
+    <link rel="icon" href="favicon.ico" type="image/x-icon" />
+    <script src="js/vendor/modernizr.js"></script>
+
+    <style type="text/css">
+        html,
+        body,
+        #map-canvas {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        .footer {
+            height: 10%;   
+            background: grey;
+        }
+        .logo {
+         height:30px;   
+        margin-top:8px;
+            margin-right: 5px;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+
+    <nav class="top-bar" data-topbar role="navigation">
+        <ul class="title-area">
+            <li class="name">
+
+             <a href="#"><img class="logo" src="img/logo.png"></img></a>
+            </li>
+            <li class="toggle-topbar menu-icon"><a href="#"><span>Menu</span></a>
+            </li>
+        </ul>
+
+        <section class="top-bar-section">
+            <!-- Right Nav Section -->
+            <ul class="right">
+
+                <li class="has-dropdown">
+                    <a href="#">John Smith</a>
+                    <ul class="dropdown">
+                        <li><a href="#">My orders</a>
+                        </li>
+                        <li><a href="#">My profile</a>
+                        </li>
+                        <li><a href="#">My payments</a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+
+            <!-- Left Nav Section -->
+            <ul class="left">
+                   
+                <li class="active"><a href="#">Discover</a>
+                </li>
+                <li><a href="#">Local</a>
+                </li>
+                <li><a href="#">Favourites</a>
+                </li>
+            </ul>
+        </section>
+    </nav>
+    <div id="map-canvas"></div>
+    <div class="footer row">
+        <form class="large-6 columns">
+            <input type="text"></input>
+        </form>
+        <p class="large-6 columns"><a href="#updatelocation">My Location</a></p>
+    </div>
+
+    <script src="js/vendor/jquery.js"></script>
+    <script src="js/foundation.min.js"></script>
+    <script>
+        $(document).foundation();
+    </script>
+    <script>
+        function initialize() {
+            google.maps.event.addDomListener(window, 'load', initialize);
+
+            var contentString = '<div id="content">' +
+                '<div id="siteNotice">' +
+                '</div>' +
+                '<div id="bodyContent">' +
+                "<ul><li>Dirty!</li><li>Smelly!</li></ul>" +
+                '</div>' +
+                '</div>';
+
+            var infowindow = new google.maps.InfoWindow({
+                content: contentString
+            });
+
+
+            var mapOptions = {
+                zoom: 15,
+                center: new google.maps.LatLng(-34.397, 150.644)
+            };
+
+            var map = new google.maps.Map(document.getElementById('map-canvas'),
+                mapOptions);
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+                    map.setCenter(initialLocation);
+                });
+            }
+
+
+
+           /*setInterval(function() {
+
+**/
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(function(position, marker) {
+                        initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+                            
+
+                        var marker = new google.maps.Marker({
+                            position: initialLocation,
+                            title: "You"
+                        });
+                        var washromLocation = new google.maps.LatLng(43.659456, -79.39740);
+                        var washroom = new google.maps.Marker({
+                            position: washromLocation,
+                            title: "washroom",
+                            icon: 'img/washroom.png'
+                        });
+
+
+                        var washrom2Location = new google.maps.LatLng(43.659656, -79.39765);
+                        var washroom2 = new google.maps.Marker({
+                            position: washrom2Location,
+                            title: "washroom",
+                            icon: 'img/washroom.png'
+                        });
+
+                        var fountainLocation = new google.maps.LatLng(43.659686, -79.39765);
+                        var fountain = new google.maps.Marker({
+                            position: fountainLocation,
+                            title: "fountain",
+                            icon: 'img/fountain.png'
+                        });
+
+                        marker.setMap(map)
+                        washroom.setMap(map)
+                        washroom2.setMap(map)
+                        fountain.setMap(map)
+                        google.maps.event.addListener(washroom, 'click', function() {
+                            infowindow.open(map, washroom);
+                        });
+
+                    });
+                }
+                
+   //         }, 5000);
+        }
+
+
+
+        function loadScript() {
+            var script = document.createElement('script');
+            script.type = 'text/javascript';
+            script.src = 'https://maps.googleapis.com/maps/api/js?v=3.exp&callback=initialize';
+            document.body.appendChild(script);
+        }
+
+        window.onload = loadScript;
+    </script>
+
+    <script>
+    </script>
+</body>
+
+</html>
