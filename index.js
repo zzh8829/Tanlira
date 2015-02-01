@@ -23,11 +23,18 @@ mongoose.connect('mongodb://localhost/tanlira');
 var MapObjectSchema = new mongoose.Schema({
   id: String,
   type: String,
+
   loc: {
-    type: {type: String},
-    coordinates: Array
+    type: {type: String, default: "Point"},
+    coordinates: {type: Array, default: [0,0]},
   },
-  date: Date
+
+  upvote: {type: Number, default: 0},
+  downvote: {type: Number, default: 0},
+  comment: Array,
+  image: Array,
+
+  date: {type: Date, default: Date.now}
 });
 
 var MapObject = mongoose.model('MapObject', MapObjectSchema);
@@ -55,7 +62,7 @@ app.post('/getobj', function(req, res) {
     });
 });
 
-app.post('/createobj', function(req, res, next) {
+app.post('/addobj', function(req, res, next) {
   console.log(req.body);
   new MapObject({
     id: uuid.v4(),
@@ -77,10 +84,65 @@ app.post('/updateobj', function(req, res) {
 });
 
 app.post('/deleteobj', function(req, res) {
-  MapObject.
-    remove({"id": req.body.id});
+  MapObject.remove({"id": req.body.id});
+});
+
+app.post('/addcomment', function(req, res) {
+  MapObject.update(
+    {"id": req.body.id},
+    {$push: {'comment' : req.body.comment}},
+    {upsert:true},
+    function(err, obj) {
+      if(err) return res.send(err);
+      res.json({
+        response: "ok"
+      })
+    }
+  );
+});
+
+
+app.post('/addimage', function(req, res) {
+  MapObject.update(
+    {"id": req.body.id},
+    {$push: {'image': req.body.image}},
+    {upsert:true},
+    function(err, obj) {
+      if(err) return res.send(err);
+      res.json({
+        response: "ok"
+      })
+    }
+  );
+});
+
+app.post('/upvote', function(req, res) {
+  MapObject.update(
+    {"id": req.body.id},
+    {$inc: {'upvote': 1}},
+    {upsert: true},
+    function(err, obj) {
+      if(err) return res.send(err);
+      res.json({
+        response: "ok"
+      })
+    }
+  );
+});
+
+app.post('/downvote', function(req, res) {
+  MapObject.update(
+    {"id": req.body.id},
+    {$inc: {'downvote': 1}},
+    {upsert: true},
+    function(err, obj) {
+      if(err) return res.send(err);
+      res.json({
+        response: "ok"
+      })
+    }
+  );
 });
 
 server.listen(port);
-
 
