@@ -224,17 +224,28 @@ app.post('/twilio', function(req, res) {
       else {
         s = JSON.parse(body);
         if ('error' in s)
-          ret.body = "Sorry, could not locate this address.";
-        else
-          ret.mediaUrl= 'https://maps.googleapis.com/maps/api/staticmap?center=' + s.latitude + "," + s.longitude + '&zoom=15&size=100x100';
+          ret.body = "Sorry, we could not locate this address.";
+        else {
+         gurl = 'https://maps.googleapis.com/maps/api/staticmap?center=' + s.latitude + "," + s.longitude + '&zoom=15&size=512x512';
+         ret.mediaUrl = gurl;
+        }
       }
-    
       console.log(ret);
-
       twilioClient.messages.create(ret);
     });
-  } else if(textlo.startsWith("location")) {
-  
+  } else if(textlo.startsWith("locate")) {
+    getloc(text.substring(6), function(err,him,body) {
+      if(err) ret.body = err;
+      else {
+        s = JSON.parse(body);
+        if ('error' in s)
+          ret.body = "Sorry, we could not locate this address.";
+        else 
+          ret.body = "Latitude:" + s.latitude + ", Longitude:" + s.longitude;
+      }
+      console.log(ret);
+      twilioClient.messages.create(ret);
+    });
   } else if(textlo.startsWith("find")) {
 
   }

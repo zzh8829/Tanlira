@@ -229,12 +229,12 @@
 
                 $.post("http://tanlira.com/getobj", {
                     "loc": [map.getCenter().lng(), map.getCenter().lat()],
-                    "distance": 1
+                    "distance": 15000
                 }, function(data) {
                     console.log(data);
                     for (var key in data) {
                         var object = data[key];
-                        var icon = "img/icons/" + object.type + ".png";
+                        var icon = "/img/icons/" + object.type + ".png";
                         var marker = new google.maps.Marker({
                             position: new google.maps.LatLng(object.loc.coordinates[1], object.loc.coordinates[0]),
                             title: "washroom",
@@ -304,6 +304,10 @@
                   '<div id="infowindow"><h4>Add a new utility!</h4><form>',
                   '<select id="select-utility-type"><option value="washroom">Washroom</option>',
                   '<option value="fountain">Water Fountain</option>',
+                                      '<option value="hotdog">Hotdog Stand</option>',
+                                      '<option value="vending">Vending Machine</option>',
+                                      '<option value="foodtruck">Food Truck</option>',
+                    
                   '</select><div id="save-utility-button" onclick="save_utility_fn()">Save!</div></form></div>'
                 ].join(''));
 
@@ -317,10 +321,29 @@
 
                   $.post("http://tanlira.com/addobj", {"type": utility_type, "loc": [lng, lat]}, function(data){
                     console.log(data);
+                      if (data.response = "ok") {
+                        var newmarker = new google.maps.Marker({
+                            position: new google.maps.LatLng(lat, lng),
+                            title: utility_type,
+                            icon: "/img/icons/" + utility_type + ".png"
+                        });
+                        newmarker.setMap(map);
+                    addmarker.setMap(null);
+                          alert ("OK");
+                      } else {
+                        alert ("ERROR");   
+                      }
                   });
                 }
 
                 google.maps.event.addListener(addmarker, 'dragend', function(event) {
+                    // document.getElementById("latbox").value = this.getPosition().lat();
+                    // document.getElementById("lngbox").value = this.getPosition().lng();
+                });
+                
+                google.maps.event.addListener(map, 'drag', function(event) {
+                   // alert ("Map dragged");
+                    console.log("Map dragged");
                     // document.getElementById("latbox").value = this.getPosition().lat();
                     // document.getElementById("lngbox").value = this.getPosition().lng();
                 });
